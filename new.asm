@@ -6,6 +6,112 @@ clear_screen macro
                  mov al, 13h
                  int 10h
 ENDM
+;;;;;;;;;;;;;;;;;;;;;;
+;MACRO FOR TITLE PAGE;
+;;;;;;;;;;;;;;;;;;;;;;
+titlepage macro 
+		
+	;background solid colors for the starting page
+		mov bx,0
+		mov cx,0
+		mov dx,0
+		.while cx!=60
+			mov dx,0
+			mov ycoord,199
+			mov color,05h
+			call verticalline
+			inc cx
+		.endw
+
+		mov cx,260
+		mov dx,0
+		.while cx!=319
+			mov dx,0
+			mov ycoord,199
+			mov color,05h
+			call verticalline
+			inc cx
+		.endw
+
+		mov cx,60
+		mov dx,0
+		.while dx!=40
+			mov cx,60
+			mov xcoord,260
+			mov color,03h
+			call horizontalline
+			inc dx
+		.endw
+
+		mov cx,60
+		mov dx,160
+		.while dx!=200
+			mov cx,60
+			mov xcoord,260
+			mov color,03h
+			call horizontalline
+			inc dx
+		.endw
+
+	;displaying "Galaxy Attack: Alien Shooter"
+		mov dh, 8		;row coordinate
+		mov dl, 8		;column coordinate
+		mov ah,02h
+		int 10h			;moving cursor position
+
+		mov dx, offset introduction
+		mov ah, 09h
+		int 21h
+	 
+		mov dh, 10		;row coordinate
+		mov dl, 8		;column coordinate
+		mov ah,02h
+		int 10h			;moving cursor position
+
+		
+	;displaying "Enter your username: "
+		mov dx, offset name_prompt
+		mov ah, 09h
+		int 21h
+
+		mov dl,10
+		mov ah,02h
+		int 21h
+
+	;taking username
+		mov dh, 12		;row coordinate
+		mov dl, 8		;column coordinate
+		mov ah,02h
+		int 10h			;moving cursor position
+
+	mov si,offset uname
+	mov cx,8
+	.while al!=13
+		mov ah, 0			;interupt for key press, which one
+		int 16h
+		mov [si], al			;key pressed is stored in al 
+
+		mov dl,al
+		mov ah,02h
+		int 21h
+
+		inc si
+		dec cx
+	.endw
+
+	;displaying "You are in!"
+	mov al,'$'
+	mov [si],al
+
+		mov dh, 14		;row coordinate
+		mov dl, 8		;column coordinate
+		mov ah,02h
+		int 10h
+	mov dx, offset msg3
+	mov ah, 09h
+	int 21h
+endm
+
 .data
 
     shape1              DB 07h,0Fh,0Fh,0Fh,0Fh,0Fh,0Fh,0Fh    ;  0
@@ -266,6 +372,22 @@ ENDM
     start_y_axis_line dw ? 
     end_y_axis_line dw ? 
 
+
+    ;first intro page variables 
+    introduction db "Galaxy Attack: Alien Shooter", '$'
+    name_prompt db "Enter your username: ", '$'
+    level1_str db "Easy ", '$'
+    level2_str db "Medium ", '$'
+    level3_str db "Difficult ", '$'
+
+    cursor db ?
+    xcoord dw 0
+    ycoord dw 0
+    uname db 26 dup(?)
+    msg3 db "You are in!$"
+
+color db 0
+
 .code
 main proc
                         mov          ax, @data
@@ -273,7 +395,9 @@ main proc
                         mov          ah, 0h
                         mov          al, 13h
                         int          10h
-        
+                        
+                        titlepage
+                        clear_screen
 
                         call         display_shape1
                         
@@ -479,40 +603,40 @@ display_shape3 proc
     display_stopCount3 dw ? 
 
  .code
-                          mov ax, pixel_width_figure3
-                          add ax, start_xaxis_figure3
-                          mov end_xaxis_figure3, ax
+                          mov           ax, pixel_width_figure3
+                          add           ax, start_xaxis_figure3
+                          mov           end_xaxis_figure3, ax
 
-                          mov ax, pixel_height_figure3
-                          mov end_yaxis_figure3, ax
+                          mov           ax, pixel_height_figure3
+                          mov           end_yaxis_figure3, ax
 
-                          mov ax, start_yaxis_figure3
-                          mov end_dx3, ax
+                          mov           ax, start_yaxis_figure3
+                          mov           end_dx3, ax
 
-                          mov bx, start_xaxis_figure3
-                          mov si, 0
-                          mov display_stopCount3, 0
+                          mov           bx, start_xaxis_figure3
+                          mov           si, 0
+                          mov           display_stopCount3, 0
     label_displayProc_1_3:
-                          mov ah, 0ch
-                          mov al, shape3[si]
-                          mov cx, bx
-                          mov dx, end_dx3
-                          int 10h
+                          mov           ah, 0ch
+                          mov           al, shape3[si]
+                          mov           cx, bx
+                          mov           dx, end_dx3
+                          int           10h
 
-                          inc bx
-                          inc si
-                          cmp bx, end_xaxis_figure3
-                          jne label_displayProc_1_3
-                          je  label_displayProc_2_3
+                          inc           bx
+                          inc           si
+                          cmp           bx, end_xaxis_figure3
+                          jne           label_displayProc_1_3
+                          je            label_displayProc_2_3
 
     label_displayProc_2_3:
-                          mov bx, start_xaxis_figure3
-                          inc end_dx3
-                          inc display_stopCount3
-                          mov dx, display_stopCount3
-                          cmp dx, end_yaxis_figure3
-                          Je  label_displayProc_3_3
-                          jmp label_displayProc_1_3
+                          mov           bx, start_xaxis_figure3
+                          inc           end_dx3
+                          inc           display_stopCount3
+                          mov           dx, display_stopCount3
+                          cmp           dx, end_yaxis_figure3
+                          Je            label_displayProc_3_3
+                          jmp           label_displayProc_1_3
         
     label_displayProc_3_3: 
 ret 
@@ -591,6 +715,66 @@ bulletFire proc
     
 ret 
 bulletFire endp 
+
+;---------------------------intro page procedures ----------------------------
+;Shamaeim
+;----------
+;----------BEGIN-------------
+verticalline proc
+line2:
+mov ah, 0ch
+mov bx, 0 ;pg number
+mov al, color
+int 10h
+inc dx
+cmp dx, ycoord
+JE return2
+JNE line2
+return2:
+ret
+verticalline endp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;PROCEDURE FOR HORIZONTAL LINE;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+horizontalline proc
+line:
+                    mov             ah, 0ch
+                    mov             bx, 0 ;pg number
+                    mov             al, color
+                    int             10h
+                    inc             cx
+                    cmp             cx, xcoord
+                    JE              return
+                    JNE             line
+    return:
+ret
+horizontalline endp
+
+
+;;;;;;;;;;;;;;;;;;
+;TIME DELAY MACRO;
+;;;;;;;;;;;;;;;;;;
+Tdelay macro
+mov delay, 0
+	.while delay != 2000
+		.while delay1 != 500
+			inc delay1
+		.endw
+		inc delay
+		mov delay1,0
+	.endw
+endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;CLEAR SCREEN PROCEDURE;
+;;;;;;;;;;;;;;;;;;;;;;;;
+ClearScreen proc                                
+    mov ah,0
+    mov al,13h 
+    int 10h
+ret
+ClearScreen endp
 
 end main
 
