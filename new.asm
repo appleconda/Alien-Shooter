@@ -372,6 +372,9 @@ endm
     start_y_axis_line dw ? 
     end_y_axis_line dw ? 
 
+    ;erase shape variables 
+    start_x_axis_erase dw ? 
+    start_y_axis_erase dw ? 
 
     ;first intro page variables 
     introduction db "Galaxy Attack: Alien Shooter", '$'
@@ -423,8 +426,8 @@ main proc
                         je           press_right
                         cmp          ax, 4b00h
                         je           press_left
-                        cmp             ax, 3920h 
-                        je              spacebar 
+                        cmp          ax, 3920h 
+                        je           spacebar 
                         JMP          jmp_keybrd_scanCode
 
     press_up:           
@@ -434,7 +437,7 @@ main proc
                         sub          ax, 1
                         mov          start_yaxis_figure1, ax
                         call         display_shape1
-            
+                        call         display_shape3
                         jmp          jmp_keybrd_scanCode
 
     press_down:         
@@ -443,7 +446,7 @@ main proc
                         add          ax, 1
                         mov          start_yaxis_figure1, ax
                         call         display_shape1
-
+                        call         display_shape3
                         jmp          jmp_keybrd_scanCode
 
     press_left:         
@@ -452,6 +455,7 @@ main proc
                         sub          ax, 1
                         mov          start_xaxis_figure1, ax
                         call         display_shape1
+                        call         display_shape3
                         jmp          jmp_keybrd_scanCode
        
     press_right:        
@@ -460,19 +464,22 @@ main proc
                         add          ax, 1
                         mov          start_xaxis_figure1, ax
                         call         display_shape1
+                        call         display_shape3
                         jmp          jmp_keybrd_scanCode
 
                         mov          ah, 0h
 
     spacebar: 
-        call bulletFire
+                        call         bulletFire
     
-        jmp jmp_keybrd_scanCode
+                        jmp          jmp_keybrd_scanCode
         
                         mov          ah, 04ch
                         int          21h
 
 main endp
+
+
 
 display_shape1 proc
     ;for this function, start video mode outside in main
@@ -555,40 +562,40 @@ display_shape2 proc
     
 
  .code
-                          mov ax, pixel_width_figure2
-                          add ax, start_xaxis_figure2
-                          mov end_xaxis_figure2, ax
+                          mov           ax, pixel_width_figure2
+                          add           ax, start_xaxis_figure2
+                          mov           end_xaxis_figure2, ax
 
-                          mov ax, pixel_height_figure2
-                          mov end_yaxis_figure2, ax
+                          mov           ax, pixel_height_figure2
+                          mov           end_yaxis_figure2, ax
 
-                          mov ax, start_yaxis_figure2
-                          mov end_dx2, ax
+                          mov           ax, start_yaxis_figure2
+                          mov           end_dx2, ax
 
-                          mov bx, start_xaxis_figure2
-                          mov si, 0
-                          mov display_stopCount2, 0
+                          mov           bx, start_xaxis_figure2
+                          mov           si, 0
+                          mov           display_stopCount2, 0
     label_displayProc_1_1:
-                          mov ah, 0ch
-                          mov al, shape2[si]
-                          mov cx, bx
-                          mov dx, end_dx2
-                          int 10h
+                          mov           ah, 0ch
+                          mov           al, shape2[si]
+                          mov           cx, bx
+                          mov           dx, end_dx2
+                          int           10h
 
-                          inc bx
-                          inc si
-                          cmp bx, end_xaxis_figure2
-                          jne label_displayProc_1_1
-                          je  label_displayProc_2_1
+                          inc           bx
+                          inc           si
+                          cmp           bx, end_xaxis_figure2
+                          jne           label_displayProc_1_1
+                          je            label_displayProc_2_1
 
     label_displayProc_2_1:
-                          mov bx, start_xaxis_figure2
-                          inc end_dx2
-                          inc display_stopCount2
-                          mov dx, display_stopCount2
-                          cmp dx, end_yaxis_figure2
-                          Je  label_displayProc_3_1
-                          jmp label_displayProc_1_1
+                          mov           bx, start_xaxis_figure2
+                          inc           end_dx2
+                          inc           display_stopCount2
+                          mov           dx, display_stopCount2
+                          cmp           dx, end_yaxis_figure2
+                          Je            label_displayProc_3_1
+                          jmp           label_displayProc_1_1
         
     label_displayProc_3_1:
                           ret
@@ -641,6 +648,54 @@ display_shape3 proc
     label_displayProc_3_3: 
 ret 
 display_shape3 endp 
+erase_shape proc 
+    .data   
+        end_xaxis_erase         dw 154
+        end_yaxis_erase         dw 30
+        end_dxErase             dw 100
+        pixel_width_erase       dw 24     ;pixel dimension in width
+        pixel_height_erase      dw 30
+    .code 
+                          mov           ax, pixel_width_figure2
+                          add           ax, start_xaxis_figure2
+                          mov           end_xaxis_figure2, ax
+
+                          mov           ax, pixel_height_figure2
+                          mov           end_yaxis_figure2, ax
+
+                          mov           ax, start_yaxis_figure2
+                          mov           end_dx2, ax
+
+                          mov           bx, start_xaxis_figure2
+                          mov           si, 0
+                          mov           display_stopCount2, 0
+    label_erase_1_1:
+                          mov           ah, 0ch
+                          mov           al, 00h
+                          mov           cx, bx
+                          mov           dx, end_dx2
+                          int           10h
+
+                          inc           bx
+                          inc           si
+                          cmp           bx, end_xaxis_figure2
+                          jne           label_erase_1_1
+                          je            label_erase_2_1
+
+    label_erase_2_1:
+                          mov           bx, start_xaxis_figure2
+                          inc           end_dx2
+                          inc           display_stopCount2
+                          mov           dx, display_stopCount2
+                          cmp           dx, end_yaxis_figure2
+                          Je            label_erase_3_1
+                          jmp           label_erase_1_1
+        
+    label_erase_3_1:
+
+
+ret
+erase_shape endp 
 draw_vertical proc 
     push cx
     push dx
